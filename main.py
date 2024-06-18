@@ -1,8 +1,8 @@
 import pygame, sys, os
 
-lista_de_modulos = ['cons', 'player']
-for modulo in lista_de_modulos:
-    sys.path.append(os.path.join(os.path.dirname(__file__), modulo))
+directorio_raiz = os.path.abspath(os.path.dirname(__file__)) # Preguntarle al profe si lo dejo así o lo borro
+if directorio_raiz not in sys.path:
+    sys.path.append(directorio_raiz)
 
 import cons, player
 
