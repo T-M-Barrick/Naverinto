@@ -14,6 +14,8 @@ pygame.display.set_caption('Naverinto') # set_caption() permite ponerle nombre a
 
 # Instanciamos una nave y establecemos su posición inicial.
 nave = player.Spaceship(cons.ANCHO_SCREEN // 2, cons.ALTO_SCREEN - 300)
+# Instanciamos el arma de la nave
+cannon = player.Cannon(nave)
 
 clock = pygame.time.Clock() # Creamos un objeto de la clase Clock. Esta clase proporciona métodos para controlar el tiempo y el framerate del juego.
 dt = 0 # Inicializamos la variable dt que servirá para controlar los tiempos de cada ciclo. Su unidad será el segundo.
@@ -37,6 +39,11 @@ while running:
         nave.x -= cons.SHIP_SPEED * dt # Mueve hacia la izquierda
     if keys[pygame.K_d]:
         nave.x += cons.SHIP_SPEED * dt # Mueve hacia la derecha
+    # Teclas para mover el cañón
+    if keys[pygame.K_j]:
+        cannon.rotar(2)
+    if keys[pygame.K_l]:
+        cannon.rotar(-2)
     
     # Limitamos la posición de la nave dentro de los límites de la pantalla
     if nave.x < 0:
@@ -52,6 +59,7 @@ while running:
     # Repintea la pantalla, haciendo que los espacios dejados atrás por la nave no se queden pintados, simulando la idea de movimiento.
     screen.fill(cons.BLACK)
 
+    cannon.dibujar(screen)
     nave.dibujar(screen)
 
     # Actualizamos la ventana luego de que se hayan hecho movimientos. Sin esta función, los cambios no se reflejarían en pantalla.
