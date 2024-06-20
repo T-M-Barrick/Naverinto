@@ -57,7 +57,7 @@ while running:
         nave.y = cons.ALTO_SCREEN - nave.rect.height
     
     # Repintea la pantalla, haciendo que los espacios dejados atrás por la nave no se queden pintados, simulando la idea de movimiento.
-    screen.fill(cons.BLACK)
+    screen.fill(cons.GRIS)
 
     cannon.dibujar(screen)
     nave.dibujar(screen)
