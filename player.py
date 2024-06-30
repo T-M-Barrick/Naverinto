@@ -6,10 +6,6 @@ class Spaceship():
 
         self.image = image
 
-        '''# Creamos una superficie (rectangular) para dibujar sobre esta. Este cuadrado transparente
-        # sólo servirá para dibujar sobre él. La bandera pygame.SRCALPHA indica que vamos a usar transparencia
-        self.superficie = pygame.Surface((cons.ANCHO_SUPERFICIE_NAVE, cons.ALTO_SUPERFICIE_NAVE), pygame.SRCALPHA)'''
-
         # Obtenemos el rectángulo (cuadrado en este caso), objeto de clase Rect, que delimita la imagen.
         # Rect es una clase que es útil para representar posición, tamaño y colisiones de la nave.
         # self.rect nos permitirá manipular y posicionar a self.image.
@@ -33,11 +29,6 @@ class Spaceship():
             self.angle += 360
 
     def dibujar(self, screen):
-
-        '''# Limpiamos la superficie cada vez que se dibuja para evitar dejar trazos
-        self.superficie.fill((0, 0, 0, 0))
-
-        pygame.draw.rect(self.superficie, cons.VERDE, (0, 0, cons.ANCHO_SUPERFICIE_NAVE, cons.ALTO_SUPERFICIE_NAVE), 10)'''
 
         # Actualizamos la posición de la nave. Con esta función, las coordenadas (x, y) harán
         # referencia siempre a la esquina superior izquierda de self.rect
