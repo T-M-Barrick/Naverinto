@@ -12,10 +12,13 @@ pygame.init()
 screen = pygame.display.set_mode((cons.ANCHO_SCREEN, cons.ALTO_SCREEN)) # Determina el tamaño de la pantalla del juego.
 pygame.display.set_caption('Naverinto') # set_caption() permite ponerle nombre al juego.
 
-# Instanciamos una nave y establecemos su posición inicial.
-nave = player.Spaceship(cons.ANCHO_SCREEN // 2, cons.ALTO_SCREEN - 300)
-# Instanciamos el arma de la nave
-cannon = player.Cannon(nave)
+# Cargamos el sprite y ajustamos su tamaño
+imagen = pygame.image.load(os.path.join(directorio_raiz, 'Imagenes', 'Sprite1.png'))
+imagen = pygame.transform.scale(imagen, (imagen.get_width() * cons.ESCALA_NAVE,
+                                         imagen.get_height() * cons.ESCALA_NAVE))
+
+# Instanciamos una nave cargándole el sprite y establecemos su posición inicial
+nave = player.Spaceship(cons.ANCHO_SCREEN // 2, cons.ALTO_SCREEN - 300, imagen)
 
 clock = pygame.time.Clock() # Creamos un objeto de la clase Clock. Esta clase proporciona métodos para controlar el tiempo y el framerate del juego.
 dt = 0 # Inicializamos la variable dt que servirá para controlar los tiempos de cada ciclo. Su unidad será el segundo.
@@ -39,13 +42,15 @@ while running:
         nave.x -= cons.SHIP_SPEED * dt # Mueve hacia la izquierda
     if keys[pygame.K_d]:
         nave.x += cons.SHIP_SPEED * dt # Mueve hacia la derecha
-    # Teclas para mover el cañón
     if keys[pygame.K_j]:
-        cannon.rotar(2)
+        nave.rotar(2) # Rota en sentido anti-horario
     if keys[pygame.K_l]:
-        cannon.rotar(-2)
+        nave.rotar(-2) # Rota en sentido horario
+    if keys[pygame.K_o]:
+        nave.rotar(180) # Rota 180°
     
     # Limitamos la posición de la nave dentro de los límites de la pantalla
+
     if nave.x < 0:
         nave.x = 0
     elif nave.x > cons.ANCHO_SCREEN - nave.rect.width:
@@ -57,9 +62,8 @@ while running:
         nave.y = cons.ALTO_SCREEN - nave.rect.height
     
     # Repintea la pantalla, haciendo que los espacios dejados atrás por la nave no se queden pintados, simulando la idea de movimiento.
-    screen.fill(cons.GRIS)
+    screen.fill(cons.BLACK)
 
-    cannon.dibujar(screen)
     nave.dibujar(screen)
 
     # Actualizamos la ventana luego de que se hayan hecho movimientos. Sin esta función, los cambios no se reflejarían en pantalla.
@@ -70,5 +74,6 @@ while running:
     # la velocidad del juego haciendo que sea siempre la misma o casi la misma.
     dt = clock.tick(cons.fps) / 1000 # Dividimos por mil para pasar de milisegundos a segundos.
 
-pygame.quit() # Para liberar espacio en la memoria y recursos del sistema al cerrar el juego y el programa.
+# Para liberar espacio en la memoria y recursos del sistema al cerrar el juego y el programa
+pygame.quit()
 sys.exit()
