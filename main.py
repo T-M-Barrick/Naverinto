@@ -1,100 +1,107 @@
-import pygame, sys
+import pygame
 import random
-#INICIALIZO PYGAME
+from player.player import Jugador
+from enemies.enemy import Enemigo
+from shots.shot import Explosion
+from utils.utils import texto_puntuacion, barra_vida
+
+# Inicializar Pygame
 pygame.init()
 
-size = (500, 400)
+# Configurar la pantalla
+width, height = 800, 600  # Puedes ajustar estos valores según tu necesidad
+window = pygame.display.set_mode((width, height))
+pygame.display.set_caption('Naverinto')
 
-#CREAR PANTALLA
-screen_width = 500
-screen_height = 400
-screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Mi PRIMER JUEGO")
+# Cargar recursos
+fondo = pygame.image.load('assets/imagenes/fondo1.jpg')
+laser_sonido = pygame.mixer.Sound('assets/laser.wav')
+explosion_sonido = pygame.mixer.Sound('assets/explosion.wav')
+golpe_sonido = pygame.mixer.Sound('assets/golpe.wav')
 
-#DEFINO COLORES
-BLACK   = (   0,   0,   0)
-WHITE   = ( 255, 255, 255)
-GREEN   = (   0, 255,   0)
-RED     = ( 255,   0,   0)
-BLUE    = (   0,   0, 255)
+explosion_list = []
+for i in range(1, 13):
+    explosion = pygame.image.load(f'assets/explosion/{i}.png').convert_alpha()
+    explosion_list.append(explosion)
 
+# Ajustar el tamaño de la ventana a las dimensiones del fondo
+width = fondo.get_width()
+height = fondo.get_height()
+window = pygame.display.set_mode((width, height))
 
-HC74225 = (199, 66, 37)
-H61CD35 = (97, 205, 53)
-
-#RELOJ
+# Variables del juego
+run = True
+fps = 60
 clock = pygame.time.Clock()
-#COLOR DE FONDO
-screen.fill(WHITE)
+score = 0
+vida = 100
+white = (255, 255, 255)
+black = (0, 0, 0)
 
+# Grupos de sprites
+grupo_jugador = pygame.sprite.Group()
+grupo_enemigos = pygame.sprite.Group()
+grupo_balas = pygame.sprite.Group()
+grupo_balas_jugador = pygame.sprite.Group()
+grupo_balas_enemigo = pygame.sprite.Group()
 
-# JUGADOR
+jugador = Jugador(width, height, laser_sonido)
+grupo_jugador.add(jugador)
 
-player_size = 50
-player_color = BLUE
-player_x = 50
-player_y = screen_height // 2
-player_speed = 5
+for _ in range(10):
+    enemigo = Enemigo(width, height, laser_sonido)
+    grupo_enemigos.add(enemigo)
 
-# IA
-class Enemy:
-    def __init__(self, x, y, size, color, speed):
-        self.x = x
-        self.y = y
-        self.size = size
-        self.color = color
-        self.speed = speed
-        self.direction = random.choice(['up', 'down'])
-        self.shoot_cooldown = 0
+# Bucle principal
+try:
+    while run:
+        clock.tick(fps)
+        window.blit(fondo, (0, 0))
 
-    def move(self):
-        if self.direction == 'up':
-            self.y -= self.speed
-            if self.y <= 0:
-                self.direction = 'down'
-        else:
-            self.y += self.speed
-            if self.y >= screen_height - self.size:
-                self.direction = 'up'
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                run = False
+            elif evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_SPACE:
+                    jugador.disparar(grupo_balas, grupo_balas_jugador)
 
-    def shoot(self, bullets):
-        if self.shoot_cooldown == 0:
-            bullet = pygame.Rect(self.x - 10, self.y + self.size // 2 - 5, 10, 10)
-            bullets.append((bullet, 'left'))
-            self.shoot_cooldown = 60  # Cooldown para disparar
-        else:
-            self.shoot_cooldown -= 1
+        grupo_jugador.update()
+        grupo_enemigos.update()
+        grupo_balas.update()
+        grupo_balas_jugador.update()
+        grupo_balas_enemigo.update()
 
-    def draw(self, screen):
-        pygame.draw.rect(screen, self.color, (self.x, self.y, self.size, self.size))
+        grupo_jugador.draw(window)
+        grupo_enemigos.draw(window)
+        grupo_balas.draw(window)
+        grupo_balas_jugador.draw(window)
+        grupo_balas_enemigo.draw(window)
 
-# Inicializar enemigo IA
-enemy = Enemy(screen_width - 100, screen_height // 2, player_size, RED, 3)
+        # Colisiones entre el jugador y los enemigos
+        colisiones_jugador_enemigo = pygame.sprite.groupcollide(grupo_jugador, grupo_enemigos, False, True)
+        for jugador, enemigos in colisiones_jugador_enemigo.items():
+            for enemigo in enemigos:
+                score += 10
+                explosion = Explosion(enemigo.rect.center, explosion_list)
+                grupo_enemigos.add(explosion)
+                explosion_sonido.play()
 
-# Balas
-bullets = []
-bullet_speed = 10
+        # Colisiones entre las balas del jugador y los enemigos
+        colisiones_balas_enemigo = pygame.sprite.groupcollide(grupo_balas_jugador, grupo_enemigos, True, True)
+        for bala, enemigos in colisiones_balas_enemigo.items():
+            for enemigo in enemigos:
+                score += 10
+                explosion = Explosion(enemigo.rect.center, explosion_list)
+                grupo_enemigos.add(explosion)
+                explosion_sonido.play()
 
-# Obstáculos
-obstacles = [
-    pygame.Rect(300, 150, 50, 300),
-    pygame.Rect(500, 150, 50, 300)
-]
+        texto_puntuacion(window, 'SCORE: ' + str(score), 30, width - 85, 2)
+        barra_vida(window, 10, 10, vida)
 
-# Puntuaciones
-score1 = 0
-score2 = 0
-font = pygame.font.Font(None, 74)
+        pygame.display.flip()
 
+except Exception as error:
+    print(f"Se produjo un error: {error}")
 
-
-
-
-
-
-
-
-
-
-
-
+finally:
+    pygame.quit()
