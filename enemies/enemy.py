@@ -1,9 +1,9 @@
 import pygame
 import random
-from shots.shot import BalasEnemigo
+from shots.balas import BalasEnemigo
 
 class Enemigo(pygame.sprite.Sprite):
-    def __init__(self, width, height, laser_sonido):
+    def __init__(self, width, height, grupo_balas_enemigo):
         super().__init__()
         self.image = pygame.image.load('assets/imagenes/e1.png').convert_alpha()
         self.image = pygame.transform.scale(self.image, (50, 50))
@@ -11,9 +11,9 @@ class Enemigo(pygame.sprite.Sprite):
         self.rect.x = random.randint(0, width - self.rect.width)
         self.rect.y = random.randint(-height, -self.rect.height)
         self.velocidad_y = random.randint(1, 3)
-        self.laser_sonido = laser_sonido
         self.width = width
         self.height = height
+        self.grupo_balas_enemigo = grupo_balas_enemigo
 
     def update(self):
         self.rect.y += self.velocidad_y
@@ -24,4 +24,4 @@ class Enemigo(pygame.sprite.Sprite):
 
     def disparar(self):
         bala = BalasEnemigo(self.rect.centerx, self.rect.bottom)
-        return bala, self.laser_sonido
+        self.grupo_balas_enemigo.add(bala)
