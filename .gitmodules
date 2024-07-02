@@ -1,3 +1,6 @@
 [submodule "Naverinto"]
 	path = Naverinto
 	url = https://github.com/T-M-Barrick/Naverinto
+[submodule "Naverito"]
+	path = Naverito
+	url = https://github.com/T-M-Barrick/Naverinto.git
