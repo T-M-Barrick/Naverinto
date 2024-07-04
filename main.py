@@ -4,7 +4,7 @@ directorio_raiz = os.path.abspath(os.path.dirname(__file__)) # Preguntarle al pr
 if directorio_raiz not in sys.path:
     sys.path.append(directorio_raiz)
 
-import cons, player
+import cons, player, paredes
 
 # Inicializamos Pygame
 pygame.init()
@@ -12,20 +12,29 @@ pygame.init()
 screen = pygame.display.set_mode((cons.ANCHO_SCREEN, cons.ALTO_SCREEN)) # Determina el tamaño de la pantalla del juego.
 pygame.display.set_caption('Naverinto') # set_caption() permite ponerle nombre al juego.
 
-# Cargamos el sprite de la nave y ajustamos su tamaño
-imagen_nave = pygame.image.load(os.path.join(directorio_raiz, 'Imagenes', 'sprite1.png'))
-imagen_nave = pygame.transform.scale(imagen_nave, (imagen_nave.get_width() * cons.ESCALA_NAVE,
-                                         imagen_nave.get_height() * cons.ESCALA_NAVE))
+# Cargamos los sprites y ajustamos los tamaños
+cant_sprites = 4
+sprites = []
+escalas = [cons.ESCALA_NAVE, cons.ESCALA_NAVE, cons.ESCALA_BULLET, cons.ESCALA_BULLET]
+for n, escala in zip(range(1, cant_sprites + 1), escalas):
+    ruta_imagen = os.path.join(directorio_raiz, 'Imagenes', f'sprite{n}.png')
+    imagen = pygame.image.load(ruta_imagen)
+    imagen = pygame.transform.scale(imagen, (imagen.get_width() * escala,
+                                         imagen.get_height() * escala))
+    sprites.append(imagen)
 
-# Cargamos el sprite de la bala y ajustamos su tamaño
-imagen_bullet = pygame.image.load(os.path.join(directorio_raiz, 'Imagenes', 'bala azul.png'))
-imagen_bullet = pygame.transform.scale(imagen_bullet, (imagen_bullet.get_width() * cons.ESCALA_BULLET,
-                                         imagen_bullet.get_height() * cons.ESCALA_BULLET))
+# Instanciamos las naves cargándole su sprite y su bala y luego establecemos su posiciones iniciales
+nave = player.Spaceship(int(cons.ANCHO_SCREEN * 0.1), cons.ALTO_SCREEN // 2, sprites[0], sprites[2])
+nave_enemiga = player.Enemy(int(cons.ANCHO_SCREEN * 0.9), cons.ALTO_SCREEN // 2, sprites[1], sprites[3], nave)
 
-# Instanciamos una nave cargándole su sprite y establecemos su posición inicial
-nave = player.Spaceship(cons.ANCHO_SCREEN // 2, cons.ALTO_SCREEN - 300, imagen_nave, imagen_bullet)
+# Instanciamos las paredes y establecemos sus posiciones iniciales
+pared1 = paredes.Pared(100, 200, 20, 100, cons.RED)
+pared2 = paredes.Pared(400, 300, 200, 20, cons.RED)
 
 balas = pygame.sprite.Group()  # Grupo para almacenar las balas disparadas
+balas_nave_enemiga = pygame.sprite.Group()  # Grupo para almacenar las balas disparadas
+paredes = pygame.sprite.Group() # Grupo para almacenar las paredes
+paredes.add(pared1, pared2)
 
 clock = pygame.time.Clock() # Creamos un objeto de la clase Clock. Esta clase proporciona métodos para controlar el tiempo y el framerate del juego.
 dt = 0 # Inicializamos la variable dt que servirá para controlar los tiempos de cada ciclo. Su unidad será el segundo.
@@ -60,7 +69,7 @@ while running:
         if bala is not None:
             balas.add(bala)
     
-    # Limitamos la posición de la nave dentro de los límites de la pantalla
+    # Limitamos las posiciones de las naves dentro de los límites de la pantalla
 
     if nave.x < 0:
         nave.x = 0
@@ -72,17 +81,39 @@ while running:
     elif nave.y > cons.ALTO_SCREEN - nave.rect.height:
         nave.y = cons.ALTO_SCREEN - nave.rect.height
     
+    if nave_enemiga.x < 0:
+        nave_enemiga.x = 0
+    elif nave_enemiga.x > cons.ANCHO_SCREEN - nave_enemiga.rect.width:
+        nave_enemiga.x = cons.ANCHO_SCREEN - nave_enemiga.rect.width
+    
+    if nave_enemiga.y < 0:
+        nave_enemiga.y = 0
+    elif nave_enemiga.y > cons.ALTO_SCREEN - nave_enemiga.rect.height:
+        nave_enemiga.y = cons.ALTO_SCREEN - nave_enemiga.rect.height
+    
     # Repintea la pantalla, haciendo que los espacios dejados atrás por la nave no se queden pintados, simulando la idea de movimiento.
     screen.fill(cons.BLACK)
 
+    paredes.draw(screen)  # Dibujamos las paredes en la pantalla
+
     nave.update()
     nave.dibujar(screen)
+    nave_enemiga.update(dt)
+    nave_enemiga.dibujar(screen)
     
     # Dibujamos las balas y actualizamos sus posiciones, o sea, las movemos.
     # Las balas que ya no pertenecen al grupo balas, ya no se cargarán más y desaparecerán de la pantalla.
     for bullet in balas:
         bullet.dibujar(screen)
-        bullet.update() # CHEQUEAR!!!!!: Ver cómo pasarle como argumento al update a la nave enemiga considerando que será online
+        bullet.update(nave_enemiga, paredes)
+
+    # Hacemos ahora que la nave enemiga dispare
+    bala_enemiga = nave_enemiga.disparar()
+    if bala_enemiga is not None:
+        balas_nave_enemiga.add(bala_enemiga)
+    for bullet in balas_nave_enemiga:
+        bullet.dibujar(screen)
+        bullet.update(nave, paredes)
 
     # Actualizamos la ventana luego de que se hayan hecho movimientos. Sin esta función, los cambios no se reflejarían en pantalla.
     pygame.display.update()
