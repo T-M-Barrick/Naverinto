@@ -46,7 +46,8 @@ class Spaceship():
     
     def update(self):
         if self.vida <= 0:
-            print('Game Over') # CAMBIAR!!!!
+            return False  # Devolver False para detener el juego
+        return True  # Devolver True para continuar el juego
 
     def dibujar(self, screen):
 
@@ -107,7 +108,10 @@ class Enemy(Spaceship):
     def update(self, dt):
         self.move(dt)
         self.rotar()
-        super().update()  # Llama al método update de la clase padre (Spaceship)
+        if self.vida <= 0:
+            return False  # Devolver False para detener el juego
+        return True  # Devolver True para continuar el juego
+        'super().update()  # Llama al método update de la clase padre (Spaceship)'
 
 class Bullet(pygame.sprite.Sprite):
 
@@ -129,43 +133,10 @@ class Bullet(pygame.sprite.Sprite):
 
         self.rebotes = 0
 
-    def update(self, nave_enemiga, paredes):
+    def update(self, nave_enemiga):
         '''Este método sirve para mover la bala y para manejar las colisiones'''
 
         # Manejamos todo tipo de colisiones
-
-        tiempo = pygame.time.get_ticks()
-
-        if tiempo - self.tiempo_rebote >= 100:
-            # Detectamos colisiones con paredes
-            for pared in paredes:
-
-                if self.rect.colliderect(pared):
-                    # Determinamos la posición de colisión
-                    if self.rect.centery < pared.rect.top:
-                        self.angle = 360 - self.angle
-                    elif self.rect.centery > pared.rect.bottom:
-                        self.angle = 360 - self.angle
-                    elif self.rect.centerx < pared.rect.left:
-                        if 0 <= self.angle < 90:
-                            self.angle = 180 - self.angle
-                        elif 270 < self.angle < 360:
-                            self.angle = 540 - self.angle
-                    elif self.rect.centerx > pared.rect.right:
-                        if 90 < self.angle <= 180:
-                            self.angle = 180 - self.angle
-                        elif 180 < self.angle < 270:
-                            self.angle = 540 - self.angle
-                    
-                    # Actualizamos self.dx y self.dy para orientar el movimiento de la bala
-                    self.dx = math.cos(math.radians(self.angle)) * cons.BULLET_SPEED
-                    self.dy = -math.sin(math.radians(self.angle)) * cons.BULLET_SPEED
-
-                    # Actualizamos self.imagen con el nuevo ángulo de reflexión
-                    self.image = pygame.transform.rotate(self.imagen_original, self.angle)
-                    
-                    self.tiempo_rebote = pygame.time.get_ticks() # Actualizamos el valor de self.tiempo_rebote
-                    self.rebotes += 1 # Incrementamos el contador de rebotes
 
         if self.rebotes == 3: # La bala solo puede rebotar 2 veces
             # kill() es un método de la clase superior Sprite que elimina a este sprite
